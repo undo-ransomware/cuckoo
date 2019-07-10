@@ -531,6 +531,9 @@ class Config(object):
             "__star__": ("physical", "machines"),
         },
         "processing": {
+            "fileops": {
+                "enabled": Boolean(True),
+            },
             "analysisinfo": {
                 "enabled": Boolean(True),
             },

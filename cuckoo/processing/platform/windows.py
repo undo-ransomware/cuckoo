@@ -248,6 +248,7 @@ class WindowsMonitor(BehaviorHandler):
 
                 for category, arg in behavior.process_apicall(event):
                     yield {
+                        "time": event["time"],
                         "type": "generic",
                         "pid": event["pid"],
                         "category": category,
@@ -263,6 +264,7 @@ class WindowsMonitor(BehaviorHandler):
                         datetime.timedelta(0, 0, event["time"] * 1000)
 
                     yield {
+                        "time": event["time"],
                         "type": "reboot",
                         "category": category,
                         "args": args,

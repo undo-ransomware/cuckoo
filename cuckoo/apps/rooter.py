@@ -339,9 +339,23 @@ def tor_disable(vm_ip, resultserver_ip, dns_port, proxy_port):
 
 def drop_toggle(action, vm_ip, resultserver_ip, resultserver_port, agent_port):
     """Toggle iptables to allow internal Cuckoo traffic."""
+    run_iptables(action, "INPUT", "--source", vm_ip, "-j", "DROP")
+    run_iptables(action, "OUTPUT", "--destination", vm_ip, "-j", "DROP")
+    run_iptables(action, "FORWARD", "--source", vm_ip, "-j", "DROP")
+    run_iptables(action, "FORWARD", "--destination", vm_ip, "-j", "DROP")
+
+    # these rules are being prepended, so:
+    # - rules added later are evaluated *first*
+    # - we're before connection tracking, so we need to manually let the ACKs
+    #   through
     run_iptables(
         action, "INPUT", "--source", vm_ip, "-p", "tcp",
         "--destination", resultserver_ip, "--dport", "%s" % resultserver_port,
+        "-j", "ACCEPT"
+    )
+    run_iptables(
+        action, "OUTPUT", "--destination", vm_ip, "-p", "tcp",
+        "--source", resultserver_ip, "--sport", "%s" % resultserver_port,
         "-j", "ACCEPT"
     )
 
@@ -350,14 +364,19 @@ def drop_toggle(action, vm_ip, resultserver_ip, resultserver_port, agent_port):
         "-p", "tcp", "--destination", vm_ip, "--dport", "%s" % agent_port,
         "-j", "ACCEPT"
     )
-
-    run_iptables(action, "INPUT", "--source", vm_ip, "-j", "DROP")
-    run_iptables(action, "OUTPUT", "--destination", vm_ip, "-j", "DROP")
+    # need connection tracking here. the resultserver doesn't spoof source
+    # ports, but the VM might.
+    run_iptables(
+        action, "INPUT", "--destination", resultserver_ip, "-p", "tcp",
+        "--source", vm_ip, "--sport", "%s" % agent_port, "-m",
+        "state", "--state", "ESTABLISHED,RELATED", "-j", "ACCEPT"
+    )
 
 def drop_enable(vm_ip, resultserver_ip, resultserver_port, agent_port=8000):
     """Enable complete dropping of all non-Cuckoo traffic by default."""
+    # prepend rules so they override the global defaults
     return drop_toggle(
-        "-A", vm_ip, resultserver_ip, resultserver_port, agent_port
+        "-I", vm_ip, resultserver_ip, resultserver_port, agent_port
     )
 
 def drop_disable(vm_ip, resultserver_ip, resultserver_port, agent_port=8000):

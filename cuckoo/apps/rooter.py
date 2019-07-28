@@ -187,13 +187,15 @@ def forward_enable(src, dst, ipaddr):
     run_iptables("-D", "FORWARD", "-i", src, "-j", "REJECT")
     run_iptables("-D", "FORWARD", "-o", src, "-j", "REJECT")
 
+    # prepend so it overrides the "drop" rules, which confusingly are always
+    # enabled for "internet" routing as well.
     run_iptables(
-        "-A", "FORWARD", "-i", src, "-o", dst,
+        "-I", "FORWARD", "-i", src, "-o", dst,
         "--source", ipaddr, "-j", "ACCEPT"
     )
 
     run_iptables(
-        "-A", "FORWARD", "-i", dst, "-o", src,
+        "-I", "FORWARD", "-i", dst, "-o", src,
         "--destination", ipaddr, "-j", "ACCEPT"
     )
 

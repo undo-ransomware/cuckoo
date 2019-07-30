@@ -88,6 +88,15 @@ class MongoDB(Report):
         if "network" not in report:
             report["network"] = {}
 
+        # hack: zap out the larger parts of the report. the web interface
+        # works just fine without those. and given the messy paginated
+        # 16MB-limited mongodb data model, we probably wont't be using that
+        # database for anything else...
+        for key in ["behavior", "fileops", "dropped", "procmon", "extracted",
+                "procmemory"]:
+            if key in report:
+                del report[key]
+
         # This will likely hardcode the cuckoo.log to this point, but that
         # should be fine.
         if report.get("debug"):

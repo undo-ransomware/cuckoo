@@ -28,7 +28,7 @@ class FileOps(BehaviorAnalysis):
 				if event["type"] == "generic":
 					cat = event["category"]
 					if cat.startswith("file_") or cat.startswith("directory_"):
-						time = event["time"]
+						time = event["ts"]
 						if time not in events:
 							events[time] = []
 						events[time].append(event)
@@ -42,7 +42,7 @@ class FileOps(BehaviorAnalysis):
 				if hasattr(self, "handle_%s" % cat):
 					op = getattr(self, "handle_%s" % cat)(cat, path)
 					if op is not None:
-						op["time"] = event["time"]
+						op["time"] = event["ts"]
 						if op != prev:
 							ops.append(op)
 							prev = op
@@ -76,7 +76,7 @@ class FileOps(BehaviorAnalysis):
 	handle_directory_enumerated = ignore
 	handle_file_read = ignore
 	handle_file_exists = ignore
-	# open might be for write, but we'll see that write later anyway
+	# open for write might be visible, but we'll see that write later anyway
 	handle_file_opened = ignore
 	# idiot programmer? these are quite common ;)
 	handle_file_failed = ignore

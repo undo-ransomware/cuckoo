@@ -246,9 +246,18 @@ class WindowsMonitor(BehaviorHandler):
                 behavior = self.behavior[event["pid"]]
                 reboot = self.reboot[event["pid"]]
 
+                # TODO! Improve this where we have to calculate the
+                # "real" time again even though we already do this in
+                # MonitorProcessLog.
+                ts = process["first_seen"] + \
+                    datetime.timedelta(0, 0, event["time"] * 1000)
+                # in Python 2.7, that's the only way to get from datetime back
+                # to a timestamp :(
+                abs_timestamp = float(ts.strftime("%s.%f"))
+
                 for category, arg in behavior.process_apicall(event):
                     yield {
-                        "time": event["time"],
+                        "ts": abs_timestamp,
                         "type": "generic",
                         "pid": event["pid"],
                         "category": category,
@@ -257,14 +266,9 @@ class WindowsMonitor(BehaviorHandler):
 
                 # Process the reboot reconstructor.
                 for category, args in reboot.process_apicall(event):
-                    # TODO Improve this where we have to calculate the
-                    # "real" time again even though we already do this in
-                    # MonitorProcessLog.
-                    ts = process["first_seen"] + \
-                        datetime.timedelta(0, 0, event["time"] * 1000)
 
                     yield {
-                        "time": event["time"],
+                        "ts": abs_timestamp,
                         "type": "reboot",
                         "category": category,
                         "args": args,

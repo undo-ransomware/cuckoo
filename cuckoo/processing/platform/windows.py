@@ -272,7 +272,7 @@ class WindowsMonitor(BehaviorHandler):
                         "type": "reboot",
                         "category": category,
                         "args": args,
-                        "time": int(ts.strftime("%d")),
+                        "time": int(ts.strftime("%s")),
                     }
 
                 # Indicate that the process has API calls. For more

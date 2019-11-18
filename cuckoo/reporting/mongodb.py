@@ -93,14 +93,9 @@ class MongoDB(Report):
         # 16MB-limited mongodb data model, we probably wont't be using that
         # database for anything else...
         for key in ["behavior", "fileops", "dropped", "procmon", "extracted",
-                "procmemory"]:
+                "procmemory", "debug"]:
             if key in report:
                 del report[key]
-
-        # This will likely hardcode the cuckoo.log to this point, but that
-        # should be fine.
-        if report.get("debug"):
-            report["debug"]["cuckoo"] = list(report["debug"]["cuckoo"])
 
         # Store path of the analysis path.
         report["info"]["analysis_path"] = self.analysis_path

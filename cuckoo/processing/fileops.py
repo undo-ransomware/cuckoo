@@ -58,16 +58,16 @@ class FileOps(BehaviorAnalysis):
 	handle_file_created = single
 	handle_file_written = single
 	handle_file_deleted = single
+	# difference from opening and writing is a different creation timestamp.
+	# unlikely to matter, but let's not drop that information here; it is
+	# visible in the post-analysis snapshot after all.
+	handle_file_recreated = single
 
 	def from_to(self, op, paths):
 		return { "op": op, "from": paths[0], "to": paths[1] }
 
 	handle_file_moved = from_to
 	handle_file_copied = from_to
-
-	def handle_file_recreated(self, op, path):
-		# no discernible difference to open + write afterwards
-		return { "op": "file_written", "path": path }
 
 	def ignore(self, op, path):
 		return None
